@@ -118,6 +118,60 @@
     (should output)
     (should (equal output ""))))
 
+;;; Activation lifecycle
+
+(ert-deftest leetcode-cookie-source-enable-disable-roundtrip ()
+  (let ((leetcode-cookie-source--installed nil)
+        (leetcode-cookie-source--disabled nil))
+    (unless (fboundp 'leetcode--cookie-get-all)
+      (defalias 'leetcode--cookie-get-all
+        (lambda () '(("stub" "1")))))
+    (cl-letf (((symbol-function 'require)
+               (lambda (feature) (should (eq feature 'leetcode)))))
+      (unwind-protect
+          (progn
+            (leetcode-cookie-source-enable)
+            (should leetcode-cookie-source--installed)
+            (should (advice-member-p
+                     #'leetcode-cookie-source--cookie-get-all
+                     'leetcode--cookie-get-all))
+            (leetcode-cookie-source-disable)
+            (should-not leetcode-cookie-source--installed)
+            (should leetcode-cookie-source--disabled)
+            (should-not (advice-member-p
+                         #'leetcode-cookie-source--cookie-get-all
+                         'leetcode--cookie-get-all)))
+        (leetcode-cookie-source-disable)))))
+
+(ert-deftest leetcode-cookie-source-maybe-enable-respects-disabled ()
+  (let ((leetcode-cookie-source--installed nil))
+    (unless (fboundp 'leetcode--cookie-get-all)
+      (defalias 'leetcode--cookie-get-all
+        (lambda () '(("stub" "1")))))
+    (unwind-protect
+        (progn
+          (let ((leetcode-cookie-source--disabled t))
+            (leetcode-cookie-source--maybe-enable))
+          (should-not leetcode-cookie-source--installed)
+          (should-not (advice-member-p
+                       #'leetcode-cookie-source--cookie-get-all
+                       'leetcode--cookie-get-all)))
+      (leetcode-cookie-source-disable))))
+
+(ert-deftest leetcode-cookie-source-enable-clears-disabled ()
+  (let ((leetcode-cookie-source--installed nil)
+        (leetcode-cookie-source--disabled t))
+    (unless (fboundp 'leetcode--cookie-get-all)
+      (defalias 'leetcode--cookie-get-all
+        (lambda () '(("stub" "1")))))
+    (cl-letf (((symbol-function 'require) (lambda (_feature))))
+      (unwind-protect
+          (progn
+            (leetcode-cookie-source-enable)
+            (should-not leetcode-cookie-source--disabled)
+            (should leetcode-cookie-source--installed))
+        (leetcode-cookie-source-disable)))))
+
 ;;; Real Zen integration (skipped when no Zen profile exists)
 
 (ert-deftest leetcode-cookie-source-real-zen-integration ()
