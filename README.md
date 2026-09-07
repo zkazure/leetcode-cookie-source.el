@@ -47,7 +47,13 @@ The script opens the database with
 
 ## Install
 
-Clone / copy this directory somewhere and:
+From MELPA (once the recipe is accepted):
+
+```text
+M-x package-install RET leetcode-cookie-source RET
+```
+
+Or clone / copy this directory somewhere and:
 
 ```elisp
 (add-to-list 'load-path "~/.emacs.d/lib/leetcode-cookie-source")
@@ -140,4 +146,5 @@ lookup), use plain functions, not a mode:
 
 ## License
 
-GPL-3.0-or-later
+[GPL-3.0-or-later](LICENSE) — the same license as
+[leetcode.el](https://github.com/kaiwk/leetcode.el).
