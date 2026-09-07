@@ -3,7 +3,7 @@
 ;; Copyright (C) 2026 kazure
 
 ;; Author: kazure
-;; Version: 0.2.0
+;; Version: 0.3.0
 ;; Package-Requires: ((emacs "28.1") (leetcode "0.0.1"))
 ;; Keywords: tools
 ;; URL: https://github.com/kazure/leetcode-cookie-source
@@ -45,7 +45,14 @@
 ;; Usage:
 ;;
 ;;   (require 'leetcode-cookie-source)
-;;   (leetcode-cookie-source-mode 1)
+;;
+;; That's all: there is no minor mode to enable.  The override of
+;; `leetcode--cookie-get-all' is installed automatically as soon as
+;; leetcode.el is loaded.  For troubleshooting,
+;; `leetcode-cookie-source-enable' and
+;; `leetcode-cookie-source-disable' (plain functions, not a mode)
+;; can temporarily turn the override on and off; disabling before
+;; leetcode.el is loaded keeps it from being installed.
 ;;
 ;; The default source chain keeps the Zen-first behaviour:
 ;;
@@ -247,22 +254,50 @@ non-empty result."
   (cl-some #'leetcode-cookie-source--source-cookies
            leetcode-cookie-source-sources))
 
-;;;###autoload
-(define-minor-mode leetcode-cookie-source-mode
-  "Toggle configurable browser cookie sources for leetcode.el.
+(defvar leetcode-cookie-source--installed nil
+  "Whether the `leetcode--cookie-get-all' override is installed.")
 
-When enabled, `leetcode--cookie-get-all' is overridden to read
-cookies from the ordered source chain in
-`leetcode-cookie-source-sources'."
-  :global t
-  :group 'leetcode-cookie-source
-  (if leetcode-cookie-source-mode
-      (progn
-        (require 'leetcode)
-        (advice-add 'leetcode--cookie-get-all :override
-                    #'leetcode-cookie-source--cookie-get-all))
+(defvar leetcode-cookie-source--disabled nil
+  "Whether the user explicitly disabled the override.
+When non-nil, the automatic installation is skipped, even when
+leetcode.el is loaded after `leetcode-cookie-source-disable' was
+called.")
+
+;;;###autoload
+(defun leetcode-cookie-source-enable ()
+  "Override `leetcode--cookie-get-all' with the configured source chain.
+This is a plain function, not a minor mode: it installs the
+`:override' advice on `leetcode--cookie-get-all' immediately
+(loading leetcode.el if needed) and clears a previous
+`leetcode-cookie-source-disable'."
+  (interactive)
+  (setq leetcode-cookie-source--disabled nil)
+  (unless leetcode-cookie-source--installed
+    (require 'leetcode)
+    (advice-add 'leetcode--cookie-get-all :override
+                #'leetcode-cookie-source--cookie-get-all)
+    (setq leetcode-cookie-source--installed t)))
+
+;;;###autoload
+(defun leetcode-cookie-source-disable ()
+  "Remove the override of `leetcode--cookie-get-all' and keep it off.
+This is a plain function, not a minor mode.  When leetcode.el is
+not loaded yet, calling this prevents the override from being
+installed when it loads."
+  (interactive)
+  (setq leetcode-cookie-source--disabled t)
+  (when leetcode-cookie-source--installed
     (advice-remove 'leetcode--cookie-get-all
-                   #'leetcode-cookie-source--cookie-get-all)))
+                   #'leetcode-cookie-source--cookie-get-all)
+    (setq leetcode-cookie-source--installed nil)))
+
+(defun leetcode-cookie-source--maybe-enable ()
+  "Install the override unless the user explicitly disabled it."
+  (unless leetcode-cookie-source--disabled
+    (leetcode-cookie-source-enable)))
+
+(with-eval-after-load 'leetcode
+  (leetcode-cookie-source--maybe-enable))
 
 (provide 'leetcode-cookie-source)
 ;;; leetcode-cookie-source.el ends here
