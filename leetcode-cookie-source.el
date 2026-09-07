@@ -6,7 +6,7 @@
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "28.1") (leetcode "0.0.1"))
 ;; Keywords: tools
-;; URL: https://github.com/kazure/leetcode-cookie-source
+;; URL: https://github.com/zkazure/leetcode-cookie-source.el
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -54,6 +54,15 @@
 ;;
 ;; Sources are tried in order; the first one that yields cookies wins.
 ;; A failing or empty source is skipped silently.
+;;
+;; Installation:
+;;
+;;   M-x package-install RET leetcode-cookie-source RET
+;;
+;; or from a git checkout with use-package:
+;;
+;;   (use-package leetcode-cookie-source
+;;     :load-path "/path/to/leetcode-cookie-source.el")
 ;;
 ;; Usage:
 ;;
