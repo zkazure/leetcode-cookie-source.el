@@ -40,7 +40,7 @@ The script opens the database with
 ## Requirements
 
 - Emacs 28.1+
-- [leetcode.el](https://github.com/kaiwk/leetcode.el) (loaded on demand when the mode is enabled)
+- [leetcode.el](https://github.com/kaiwk/leetcode.el) (loaded as usual; the override is installed automatically once it loads)
 - `python3` on `exec-path` (any Python 3; sqlite3 is standard library) — only
   needed for `:firefox-dir` sources
 - The browsers/tools you configure as sources
@@ -52,19 +52,19 @@ Clone / copy this directory somewhere and:
 ```elisp
 (add-to-list 'load-path "~/.emacs.d/lib/leetcode-cookie-source")
 (require 'leetcode-cookie-source)
-(leetcode-cookie-source-mode 1)
 ```
 
 Or with use-package:
 
 ```elisp
 (use-package leetcode-cookie-source
-  :load-path "~/.emacs.d/lib/leetcode-cookie-source"
-  :config (leetcode-cookie-source-mode 1))
+  :load-path "~/.emacs.d/lib/leetcode-cookie-source")
 ```
 
-That's it — `M-x leetcode`, `leetcode-try`, `leetcode-submit` just work.
-Toggle with `M-x leetcode-cookie-source-mode`.
+That's it — **there is no minor mode to enable**.  Loading the package
+registers a `with-eval-after-load` hook, and the override of
+`leetcode--cookie-get-all` is installed automatically as soon as leetcode.el
+is loaded.  `M-x leetcode`, `leetcode-try`, `leetcode-submit` just work.
 
 ## Configuration
 
@@ -100,10 +100,22 @@ Examples:
 | `leetcode-cookie-source-python-program` | `"python3"` | Python 3 executable |
 | `leetcode-cookie-source-domain` | `"leetcode.com"` | LeetCode domain |
 
+## Troubleshooting
+
+The override installs itself automatically — nothing to enable.  If you need
+to temporarily turn it off (e.g. to compare against the original cookie
+lookup), use plain functions, not a mode:
+
+| Command | Effect |
+| --- | --- |
+| `M-x leetcode-cookie-source-disable` | Removes the override.  Called before leetcode.el is loaded, it keeps the override from being installed when it loads. |
+| `M-x leetcode-cookie-source-enable` | Installs the override immediately (loading leetcode.el if needed) and clears a previous disable. |
+
 ## How it works
 
-1. `leetcode-cookie-source-mode` adds `:override` advice on
-   `leetcode--cookie-get-all`.
+1. Loading the package registers a `with-eval-after-load` hook; as soon as
+   leetcode.el is loaded, `:override` advice is installed on
+   `leetcode--cookie-get-all` automatically (no minor mode to enable).
 2. For each source in order:
    - `:firefox-dir` runs an embedded Python script via `call-process-region`
      (stdin, no temp files).  The script locates the default profile via
