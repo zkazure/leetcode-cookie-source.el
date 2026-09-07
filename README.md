@@ -1,5 +1,11 @@
 # leetcode-cookie-source
 
+> **Archived.** This functionality has been contributed upstream:
+> [kaiwk/leetcode.el#159 — Add optional Firefox-family cookie source (Zen support)](https://github.com/kaiwk/leetcode.el/pull/159).
+> Once merged, set `leetcode-cookie-firefox-profile-dir` (e.g. `"~/.config/zen"`)
+in leetcode.el directly — this package is no longer needed and is kept
+> read-only for existing users.
+
 Configurable browser cookie sources for
 [leetcode.el](https://github.com/kaiwk/leetcode.el) — the Emacs LeetCode
 client you already use.
